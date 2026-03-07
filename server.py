@@ -58,14 +58,14 @@ def get_summary(username):
         user_stats = f.read()
         
     # Składamy jeden mocny prompt dla Twojej funkcji rag_query
-    prompt = f"""Jesteś wyrozumiałym nauczycielem matematyki. Zwracaj się bezpośrednio do ucznia w języku polskim.
-Oto historia wyników ucznia:
-{user_stats}
-Napisz krótkie, motywujące podsumowanie jego postępów. Wskaż mocne strony i to, nad czym musi popracować."""
+    prompt = f"""Jesteś wyrozumiałym nauczycielem matematyki. Pisz języku polskim.
+Nie wymyślaj faktów,
+Napisz krótkie, motywujące podsumowanie jego postępów. Wskaż mocne strony i to, nad czym musi popracować oraz jak to osiągnąć."""
     
     try:
         # Odpalamy Twoją funkcję z Answer_model.py
-        summary = rag_query(prompt)
+        summary = rag_query(prompt,user_stats)
+        print(summary)
         return jsonify({"status": "success", "summary": summary})
     except Exception as e:
         return jsonify({"error": f"Błąd modelu RAG: {str(e)}"}), 500

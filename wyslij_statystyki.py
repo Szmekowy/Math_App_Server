@@ -1,52 +1,33 @@
 import requests
 
-SERVER_URL = "http://localhost:5000"
+# Adres Twojego lokalnego serwera Flask
+BASE_URL = "http://127.0.0.1:5000"
 
-def zapisz_wynik(username, temat, punkty, max_punkty):
-    """Wysyła statystyki z konkretnej sesji do serwera."""
-    print(f"Wysyłam statystyki dla gracza: {username}...")
-    
-    stats_text = f"Temat: {temat} | Wynik: {punkty}/{max_punkty} poprawnych odpowiedzi."
-    
-    payload = {
+# --- 1️⃣ Wysyłamy przykładowe statystyki ---
+username = "jan_kowalski"
+zadania = [
+    {"task_content": "Zadanie 1: Oblicz 2+2", "is_correct": True},
+    {"task_content": "Zadanie 2: Rozwiąż równanie x^2=4", "is_correct": False},
+    {"task_content": "Zadanie 3: Oblicz pole prostokąta 5x3", "is_correct": True}
+]
+
+for stat in zadania:
+    response = requests.post(f"{BASE_URL}/save_stats", json={
         "username": username,
-        "stats": stats_text
-    }
-    
-    response = requests.post(f"{SERVER_URL}/save_stats", json=payload)
-    if response.status_code == 200:
-        print("✅", response.json()["message"])
+        "task_content": stat["task_content"],
+        "is_correct": stat["is_correct"]
+    })
+    if response.ok:
+        print(f"Zapisano statystyki: {stat['task_content']}")
     else:
-        print("❌ Błąd zapisu:", response.json())
+        print(f"Błąd zapisu: {response.json()}")
 
-def popros_llm_o_podsumowanie(username):
-    """Pobiera od serwera (i LLM) podsumowanie postępów."""
-    print(f"\nProszę LLM o analizę wyników dla: {username}...")
-    
-    response = requests.get(f"{SERVER_URL}/get_summary/{username}")
-    
-    if response.status_code == 200:
-        dane = response.json()
-        print("\n=== PODSUMOWANIE OD NAUCZYCIELA ===")
-        print(dane["summary"])
-        print("===================================")
-    else:
-        # Tu łapiemy błąd, jeśli użytkownika nie ma w bazie!
-        print("❌ Błąd:", response.json().get("error", "Nieznany błąd"))
+# --- 2️⃣ Pobranie podsumowania od modelu RAG ---
+response = requests.get(f"{BASE_URL}/get_summary/{username}")
 
-if __name__ == "__main__":
-    # Symulujemy użytkownika. Zmień nick, żeby przetestować tworzenie nowego pliku!
-    NICK = "Piotrek"
-    
-    # 1. Piotrek rozwiązuje test z matmy i wysyłamy jego wynik
-    zapisz_wynik(NICK, "Matematyka - Równania i Ciągi", 4, 5)
-    
-    # 2. Piotrek rozwiązuje kolejny test za jakiś czas
-    zapisz_wynik(NICK, "Matematyka - Prawdopodobieństwo", 2, 5)
-    
-    # 3. Pytamy LLM o podsumowanie postępów Piotrka
-    #popros_llm_o_podsumowanie(NICK)
-    
-    # 4. A co jeśli zapytamy o kogoś, kogo nie ma?
-    print("\n--- Testujemy brakującego użytkownika ---")
-    popros_llm_o_podsumowanie("Widmo")
+if response.ok:
+    summary = response.json()["summary"]
+    print("\n=== Podsumowanie postępów ucznia ===")
+    print(summary)
+else:
+    print(f"Błąd pobrania podsumowania: {response.json()}")
