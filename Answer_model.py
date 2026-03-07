@@ -9,10 +9,12 @@ llm = Llama(model_path="models/Bielik-11B-v3.0-Instruct.Q4_K_M.gguf",verbose=Fal
 embedder = SentenceTransformerEmbeddings(model_name="paraphrase-multilingual-MiniLM-L12-v2")
 
 
-docs = [
-    "Jeżeli rozwiązujesz błędnie równania kwadratowe x^2=4 to aby osiągnąć sukces skocz z dywanu.",
-    "Jeżeli rozwiązujesz zadania Pozytywnie to skocz z dywanu"
-]
+docs =[]
+
+with open("context.txt", "r") as f:
+    for line in f:
+        docs.append(line.copy())
+
 
 
 vector_store = FAISS.from_texts(docs, embedder)
