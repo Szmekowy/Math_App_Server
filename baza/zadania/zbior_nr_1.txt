@@ -1,0 +1,90 @@
+[ZADANIE]
+TRESC: Wyznacz współrzędne wierzchołka paraboli określonej wzorem y = x^2 - 4x + 3.
+A: (2, -1)
+B: (-2, 1)
+C: (4, 3)
+D: (0, 3)
+POPRAWNA: A
+OPIS: Aby obliczyć współrzędną p wierzchołka, używamy wzoru p = -b/2a. W tym przypadku a=1, b=-4, więc p = -(-4)/(2 * 1) = 2. Następnie obliczamy q podstawiając p do wzoru funkcji: q = f(2) = 2^2 - 4 * 2 + 3 = 4 - 8 + 3 = -1. Wierzchołek ma współrzędne (2, -1).
+===
+[ZADANIE]
+TRESC: Oblicz wartość wyrażenia log_2(8) + log_3(9).
+A: 6
+B: 5
+C: 4
+D: 7
+POPRAWNA: B
+OPIS: Z definicji logarytmu: log_2(8) to potęga, do której trzeba podnieść 2, aby otrzymać 8 (2^3 = 8), więc log_2(8) = 3. Podobnie log_3(9) = 2, bo 3^2 = 9. Sumujemy wyniki: 3 + 2 = 5.
+===
+[ZADANIE]
+TRESC: Oblicz wartość wyrażenia sin(30°) + cos(60°).
+A: 1
+B: \sqrt{3}
+C: 1/2
+D: 2
+POPRAWNA: A
+OPIS: Z tablic wartości funkcji trygonometrycznych wiemy, że sin(30°) = 1/2 oraz cos(60°) = 1/2. Sumując te wartości otrzymujemy: 1/2 + 1/2 = 1.
+===
+[ZADANIE]
+TRESC: Rzucamy dwukrotnie standardową, sześcienną kostką do gry. Jakie jest prawdopodobieństwo, że suma wyrzuconych oczek wyniesie 4?
+A: 1/12
+B: 1/6
+C: 1/9
+D: 1/36
+POPRAWNA: A
+OPIS: Przy dwukrotnym rzucie kostką wszystkich możliwych wyników jest 6 * 6 = 36. Zdarzenia sprzyjające (suma równa 4) to pary: (1,3), (2,2), (3,1). Są 3 takie zdarzenia. Prawdopodobieństwo P = 3/36, co po skróceniu ułamka daje nam 1/12.
+===
+[ZADANIE]
+TRESC: Ile pierwiastków rzeczywistych ma równanie wielomianowe x^3 - 4x = 0?
+A: 1
+B: 2
+C: 3
+D: 0
+POPRAWNA: C
+OPIS: Wyłączamy x przed nawias: x(x^2 - 4) = 0. Następnie ze wzoru skróconego mnożenia rozkładamy zawartość nawiasu: x(x - 2)(x + 2) = 0. Przyrównując każdy czynnik do zera, otrzymujemy trzy rozwiązania: x = 0, x = 2, x = -2. Równanie ma 3 pierwiastki.
+===
+[ZADANIE]
+TRESC: W ciągu arytmetycznym pierwszy wyraz a_1 = 3, a różnica r = 4. Ile wynosi piąty wyraz tego ciągu (a_5)?
+A: 15
+B: 19
+C: 23
+D: 16
+POPRAWNA: B
+OPIS: Wzór na n-ty wyraz ciągu arytmetycznego to a_n = a_1 + (n - 1)r. Podstawiając nasze dane dla n = 5, otrzymujemy: a_5 = 3 + (5 - 1) * 4 = 3 + 4 * 4 = 3 + 16 = 19.
+===
+[ZADANIE]
+TRESC: Rozwiąż równanie z wartością bezwzględną: |x - 2| = 5.
+A: x = 7
+B: x = 3 lub x = -3
+C: x = 7 lub x = -3
+D: Brak rozwiązań
+POPRAWNA: C
+OPIS: Zgodnie z definicją wartości bezwzględnej, wyrażenie wewnątrz może być równe 5 lub -5. Otrzymujemy z tego dwa proste równania do rozwiązania: x - 2 = 5 (wtedy x = 7) lub x - 2 = -5 (wtedy x = -3).
+===
+[ZADANIE]
+TRESC: Jaki jest promień okręgu o równaniu (x - 1)^2 + (y + 2)^2 = 16?
+A: 16
+B: 8
+C: 4
+D: 2
+POPRAWNA: C
+OPIS: Równanie okręgu w tablicach maturalnych ma postać (x - a)^2 + (y - b)^2 = r^2, gdzie (a, b) to środek okręgu, a r to jego promień. Z naszego równania jasno wynika, że r^2 = 16. Pierwiastkując, otrzymujemy r = 4 (pamiętając, że długość promienia musi być dodatnia).
+===
+[ZADANIE]
+TRESC: Ile można utworzyć różnych liczb trzycyfrowych o niepowtarzających się cyfrach, wykorzystując tylko zbiór {1, 2, 3, 4, 5}?
+A: 125
+B: 60
+C: 15
+D: 120
+POPRAWNA: B
+OPIS: Używamy standardowej reguły mnożenia. Na pierwszym miejscu możemy postawić jedną z 5 cyfr. Ponieważ cyfry nie mogą się powtarzać, na drugie miejsce wybieramy jedną z 4 pozostałych, a na trzecie jedną z 3. Mnożymy wszystkie możliwości: 5 * 4 * 3 = 60.
+===
+[ZADANIE]
+TRESC: Uprość wyrażenie z pierwiastkami: \sqrt{50} - \sqrt{18}.
+A: \sqrt{32}
+B: 2\sqrt{2}
+C: 8\sqrt{2}
+D: 4
+POPRAWNA: B
+OPIS: Rozkładamy liczby pod pierwiastkami na czynniki, z których da się łatwo wyciągnąć pierwiastek kwadratowy: \sqrt{25 * 2} - \sqrt{9 * 2}. Wyciągamy przed znak pierwiastka: 5\sqrt{2} - 3\sqrt{2}. Teraz po prostu odejmujemy: (5 - 3)\sqrt{2} = 2\sqrt{2}.
+===
