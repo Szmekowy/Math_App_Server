@@ -1,0 +1,45 @@
+[ZADANIE]
+TRESC: Rozwiąż równanie wykładnicze: 2^x = 16.
+A: 4
+B: 2
+C: 8
+D: 16
+POPRAWNA: A
+OPIS: Zapisujemy obie strony równania za pomocą tej samej podstawy. 16 to inaczej 2^4. Otrzymujemy 2^x = 2^4, więc x = 4.
+===
+[ZADANIE]
+TRESC: W ciągu geometrycznym pierwszy wyraz a_1 = 2, a iloraz q = 3. Oblicz trzeci wyraz tego ciągu (a_3).
+A: 18
+B: 12
+C: 9
+D: 6
+POPRAWNA: A
+OPIS: Wzór na n-ty wyraz ciągu geometrycznego to a_n = a_1 * q^(n-1). Podstawiając dane dla n=3: a_3 = 2 * 3^(3-1) = 2 * 3^2 = 2 * 9 = 18.
+===
+[ZADANIE]
+TRESC: Z urny, w której jest 5 kul białych i 3 czarne, losujemy jedną. Jakie jest prawdopodobieństwo wylosowania kuli czarnej?
+A: 3/8
+B: 5/8
+C: 3/5
+D: 1/8
+POPRAWNA: A
+OPIS: Zliczamy wszystkie kule (moc Omegi): 5 + 3 = 8. Kul czarnych jest 3 (zdarzenia sprzyjające). Z definicji prawdopodobieństwa dzielimy zdarzenia sprzyjające przez wszystkie możliwe: 3/8.
+===
+[ZADANIE]
+TRESC: Oblicz pochodną funkcji wielomianowej f(x) = 3x^2 - 5x + 2.
+A: 6x - 5
+B: 3x - 5
+C: 6x
+D: x - 5
+POPRAWNA: A
+OPIS: Korzystamy ze wzoru na pochodną potęgi: (x^n)' = n*x^(n-1). Pochodna z 3x^2 to 2*3x^1 = 6x. Pochodna z -5x to -5. Pochodna ze stałej (2) to 0. Łącząc to, otrzymujemy 6x - 5.
+===
+[ZADANIE]
+TRESC: Kąt wpisany w okrąg jest oparty na tym samym łuku, co kąt środkowy o mierze 100 stopni. Jaką miarę ma kąt wpisany?
+A: 50 stopni
+B: 100 stopni
+C: 200 stopni
+D: 25 stopni
+POPRAWNA: A
+OPIS: Zgodnie z twierdzeniem o kątach w okręgu, miara kąta wpisanego jest zawsze równa połowie miary kąta środkowego opartego na tym samym łuku. Zatem 100 / 2 = 50 stopni.
+===
