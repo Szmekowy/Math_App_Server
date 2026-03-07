@@ -25,27 +25,23 @@ def get_tasks(filename):
         
     return jsonify({"status": "success", "data": content})
 
-# 2. Zapisywanie statystyk po rozwiązaniu zadań
+# 2. Zapisywanie statystyk po rozwiązaniu zadań (Uproszczone)
 @app.route('/save_stats', methods=['POST'])
 def save_stats():
     data = request.json
     username = data.get("username", "nieznajomy")
-    task_content = data.get("task_content") # Cała treść zadania
-    is_correct = data.get("is_correct")     # True jeśli dobrze, False jeśli źle
+    stats_text = data.get("stats_text") # Klient przesyła tu gotowy tekst/zdanie ze statystykami
     
     # Zabezpieczenie, żeby klient nie przysłał pustych danych
-    if not task_content or is_correct is None:
-        return jsonify({"error": "Brakuje treści zadania lub informacji, czy rozwiązano poprawnie (is_correct)."}), 400
+    if not stats_text:
+        return jsonify({"error": "Brakuje danych do zapisania (stats_text)."}), 400
         
-    # Tłumaczymy boolean na ładny tekst do naszego pliku
-    wynik_tekst = "POPRAWNIE" if is_correct else "BŁĘDNIE"
-    
-    # Zapisujemy to w pliku użytkownika
+    # Zapisujemy otrzymany tekst prosto do pliku użytkownika (dodajemy \n na końcu)
     filepath = os.path.join(STATS_DIR, f"{username}_stats.txt")
     with open(filepath, "a", encoding="utf-8") as f:
-        f.write(f"Zadanie: {task_content}\nRozwiązano: {wynik_tekst}\n---\n")
+        f.write(f"{stats_text}\n")
         
-    return jsonify({"status": "success", "message": "Statystyki zadania zapisane!"})
+    return jsonify({"status": "success", "message": "Statystyki zapisane!"})
 
 # 3. Podsumowanie postępów przez Twój model RAG
 @app.route('/get_summary/<username>', methods=['GET'])
@@ -58,13 +54,13 @@ def get_summary(username):
         user_stats = f.read()
         
     # Składamy jeden mocny prompt dla Twojej funkcji rag_query
-    prompt = f"""Jesteś wyrozumiałym nauczycielem matematyki. Pisz języku polskim.
+    prompt = """Jesteś wyrozumiałym nauczycielem matematyki. Pisz języku polskim.
 Nie wymyślaj faktów,
-Napisz krótkie, motywujące podsumowanie jego postępów. Wskaż mocne strony i to, nad czym musi popracować oraz jak to osiągnąć."""
+Napisz krótkie, motywujące podsumowanie postępów ucznia. Wskaż mocne strony i to, nad czym musi popracować oraz jak to osiągnąć."""
     
     try:
-        # Odpalamy Twoją funkcję z Answer_model.py
-        summary = rag_query(prompt,user_stats)
+        # Odpalamy Twoją funkcję z Answer_model.py (podałeś prompt i user_stats)
+        summary = rag_query(prompt, user_stats)
         print(summary)
         return jsonify({"status": "success", "summary": summary})
     except Exception as e:
@@ -146,7 +142,7 @@ def ask_help():
     except ValueError:
         return jsonify({"error": "Numer zadania musi być liczbą całkowitą."}), 400
         
-    # Składamy kontekst w jeden prompt dla rag_query
+    # Składamy kontekst w jeden prompt dla rag_query (możesz dopasować format, jeśli rag_query przyjmuje 2 argumenty jak wyżej)
     prompt = f"""Jesteś cierpliwym korepetytorem. Odpowiadaj krótko i w języku polskim. Skup się tylko na pytaniu ucznia, nie rozwiązuj za niego całego zadania, naprowadzaj go.
 Zadanie i rozwiązanie:
 ---
