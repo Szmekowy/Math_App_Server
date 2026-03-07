@@ -1,39 +1,17 @@
 import os
-import requests
 from flask import Flask, request, jsonify
 
-app = Flask(__name__)
+# Importujemy Twój gotowy moduł AI
+from Answer_model import rag_query
 
+app = Flask(__name__)
 
 TASKS_DIR = "baza/zadania"
 STATS_DIR = "baza/statystyki"
 
+# Upewniamy się, że struktura katalogów istnieje
 os.makedirs(TASKS_DIR, exist_ok=True)
 os.makedirs(STATS_DIR, exist_ok=True)
-# Konfiguracja lokalnego LLM (np. LM Studio na porcie 1234)
-LLM_API_URL = "http://localhost:1234/v1/chat/completions"
-
-def ask_local_llm(system_prompt, user_prompt):
-    """Funkcja do gadania z lokalnym modelem na porcie 1234."""
-    payload = {
-        # W LM Studio nazwa modelu często nie ma znaczenia, ale można podać np. "local-model"
-        "model": "local-model", 
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        "temperature": 0.7, # Możesz regulować "kreatywność" modelu (0.0 - 1.0)
-        "stream": False
-    }
-    
-    try:
-        response = requests.post(LLM_API_URL, json=payload)
-        response.raise_for_status()
-        data = response.json()
-        # Wyciągamy odpowiedź zgodnie ze standardem OpenAI
-        return data["choices"][0]["message"]["content"]
-    except requests.exceptions.RequestException as e:
-        return f"Błąd komunikacji z lokalnym modelem (port 1234): {e}"
 
 # 1. Pobieranie zbioru zadań przez klienta
 @app.route('/get_tasks/<filename>', methods=['GET'])
@@ -52,15 +30,24 @@ def get_tasks(filename):
 def save_stats():
     data = request.json
     username = data.get("username", "nieznajomy")
-    stats = data.get("stats") 
+    task_content = data.get("task_content") # Cała treść zadania
+    is_correct = data.get("is_correct")     # True jeśli dobrze, False jeśli źle
     
+    # Zabezpieczenie, żeby klient nie przysłał pustych danych
+    if not task_content or is_correct is None:
+        return jsonify({"error": "Brakuje treści zadania lub informacji, czy rozwiązano poprawnie (is_correct)."}), 400
+        
+    # Tłumaczymy boolean na ładny tekst do naszego pliku
+    wynik_tekst = "POPRAWNIE" if is_correct else "BŁĘDNIE"
+    
+    # Zapisujemy to w pliku użytkownika
     filepath = os.path.join(STATS_DIR, f"{username}_stats.txt")
     with open(filepath, "a", encoding="utf-8") as f:
-        f.write(f"{stats}\n")
+        f.write(f"Zadanie: {task_content}\nRozwiązano: {wynik_tekst}\n---\n")
         
-    return jsonify({"status": "success", "message": "Statystyki zapisane!"})
+    return jsonify({"status": "success", "message": "Statystyki zadania zapisane!"})
 
-# 3. Podsumowanie postępów przez lokalny LLM
+# 3. Podsumowanie postępów przez Twój model RAG
 @app.route('/get_summary/<username>', methods=['GET'])
 def get_summary(username):
     filepath = os.path.join(STATS_DIR, f"{username}_stats.txt")
@@ -70,15 +57,18 @@ def get_summary(username):
     with open(filepath, "r", encoding="utf-8") as f:
         user_stats = f.read()
         
-    system_prompt = "Jesteś wyrozumiałym nauczycielem matematyki. Zwracaj się bezpośrednio do ucznia w języku polskim."
-    user_prompt = f"Oto historia wyników ucznia:\n{user_stats}\nNapisz krótkie, motywujące podsumowanie jego postępów. Wskaż mocne strony i to, nad czym musi popracować."
+    # Składamy jeden mocny prompt dla Twojej funkcji rag_query
+    prompt = f"""Jesteś wyrozumiałym nauczycielem matematyki. Zwracaj się bezpośrednio do ucznia w języku polskim.
+Oto historia wyników ucznia:
+{user_stats}
+Napisz krótkie, motywujące podsumowanie jego postępów. Wskaż mocne strony i to, nad czym musi popracować."""
     
-    summary = ask_local_llm(system_prompt, user_prompt)
-    
-    if summary.startswith("Błąd komunikacji"):
-        return jsonify({"error": summary}), 500
-        
-    return jsonify({"status": "success", "summary": summary})
+    try:
+        # Odpalamy Twoją funkcję z Answer_model.py
+        summary = rag_query(prompt)
+        return jsonify({"status": "success", "summary": summary})
+    except Exception as e:
+        return jsonify({"error": f"Błąd modelu RAG: {str(e)}"}), 500
 
 # 4. Tworzenie własnych plików z zadaniami
 @app.route('/add_task', methods=['POST'])
@@ -117,7 +107,8 @@ def add_task():
         f.write(nowe_zadanie)
         
     return jsonify({"status": "success", "message": f"Dodano nowe zadanie do pliku {filename}.txt!"})
-# 5. Prośba o pomoc w konkretnym zadaniu (tłumaczenie przez lokalny LLM)
+
+# 5. Prośba o pomoc w konkretnym zadaniu przez Twój model RAG
 @app.route('/ask_help', methods=['POST'])
 def ask_help():
     data = request.json
@@ -140,7 +131,6 @@ def ask_help():
         content = f.read()
         
     # Dzielimy plik na poszczególne zadania za pomocą naszego separatora '==='
-    # if t.strip() usuwa ewentualne puste bloki (np. po ostatnim '===')
     tasks = [t.strip() for t in content.split('===') if t.strip()]
     
     try:
@@ -156,21 +146,24 @@ def ask_help():
     except ValueError:
         return jsonify({"error": "Numer zadania musi być liczbą całkowitą."}), 400
         
-    # Budujemy prompty dla LLM
-    system_prompt = "Jesteś cierpliwym korepetytorem. Odpowiadaj krótko i w języku polskim. Skup się tylko na pytaniu ucznia, nie rozwiązuj za niego całego zadania, naprowadzaj go."
-    user_prompt = f"Zadanie i rozwiązanie:\n---\n{task_content}\n---\nUczeń nie rozumie i pyta: '{user_question}'. Odpowiedz tylko na to pytanie na poziomie liceum."
+    # Składamy kontekst w jeden prompt dla rag_query
+    prompt = f"""Jesteś cierpliwym korepetytorem. Odpowiadaj krótko i w języku polskim. Skup się tylko na pytaniu ucznia, nie rozwiązuj za niego całego zadania, naprowadzaj go.
+Zadanie i rozwiązanie:
+---
+{task_content}
+---
+Uczeń nie rozumie i pyta: '{user_question}'. Odpowiedz tylko na to pytanie na poziomie liceum."""
     
-    # Pytamy lokalny model
-    answer = ask_local_llm(system_prompt, user_prompt)
-    
-    if answer.startswith("Błąd komunikacji"):
-        return jsonify({"error": answer}), 500
-        
-    return jsonify({
-        "status": "success", 
-        "task_number": task_number,
-        "answer": answer
-    })
+    try:
+        # Odpalamy Twoją funkcję z Answer_model.py
+        answer = rag_query(prompt)
+        return jsonify({
+            "status": "success", 
+            "task_number": task_number,
+            "answer": answer
+        })
+    except Exception as e:
+        return jsonify({"error": f"Błąd modelu RAG: {str(e)}"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
