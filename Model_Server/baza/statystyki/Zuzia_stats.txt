@@ -1,0 +1,7 @@
+[2026-03-01] Zadanie 1: Dodawanie liczb całkowitych - rozwiązane poprawnie
+[2026-03-01] Zadanie 2: Równania liniowe - rozwiązane błędnie
+[2026-03-02] Zadanie 3: Potęgi i pierwiastki - rozwiązane poprawnie
+[2026-03-03] Zadanie 4: Ułamki zwykłe - rozwiązane poprawnie
+[2026-03-04] Zadanie 5: Procenty - rozwiązane błędnie
+[2026-03-05] Zadanie 6: Geometria płaska - rozwiązane poprawnie
+[2026-03-06] Zadanie 7: Funkcja liniowa - rozwiązane poprawnie

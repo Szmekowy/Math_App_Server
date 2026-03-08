@@ -1,4 +1,6 @@
 import os
+import re
+from datetime import datetime
 from flask import Flask, request, jsonify
 
 # Importujemy Twój gotowy moduł AI
@@ -8,15 +10,32 @@ app = Flask(__name__)
 
 TASKS_DIR = "baza/zadania"
 STATS_DIR = "baza/statystyki"
-
+REPORTS_DIR = "baza/raporty"
 # Upewniamy się, że struktura katalogów istnieje
+os.makedirs(REPORTS_DIR,exist_ok=True)
 os.makedirs(TASKS_DIR, exist_ok=True)
 os.makedirs(STATS_DIR, exist_ok=True)
 
 @app.route('/get_students', methods=['GET'])
 def get_students():
-    students = [f.split('_stats.txt')[0] for f in os.listdir(STATS_DIR) if f.endswith('_stats.txt')]
+    students = []
+    for filename in os.listdir(STATS_DIR):
+        if filename.endswith('_stats.txt'):
+            students.append(filename[:-10])  # remove "_stats.txt"
+        elif filename.endswith('_stat.txt'):
+            students.append(filename[:-9])   # remove "_stat.txt"
+    students = sorted(set(students), key=str.lower)
     return jsonify({"students": students})
+
+
+def _stats_file_for_user(username):
+    primary = os.path.join(STATS_DIR, f"{username}_stats.txt")
+    legacy = os.path.join(STATS_DIR, f"{username}_stat.txt")
+    if os.path.exists(primary):
+        return primary
+    if os.path.exists(legacy):
+        return legacy
+    return primary
 
 
 # 1. Pobieranie zbioru zadań przez klienta
@@ -44,15 +63,28 @@ def save_stats():
         
     # Zapisujemy otrzymany tekst prosto do pliku użytkownika (dodajemy \n na końcu)
     filepath = os.path.join(STATS_DIR, f"{username}_stats.txt")
+    timestamp = datetime.now().strftime("%Y-%m-%d")
+    line_to_save = f"[{timestamp}] {stats_text}"
+    # Nie dublujemy daty, jeżeli klient już wysłał log z prefiksem [YYYY-MM-DD]
+    if re.match(r"^\[\d{4}-\d{2}-\d{2}\]\s", stats_text):
+        line_to_save = stats_text
     with open(filepath, "a", encoding="utf-8") as f:
-        f.write(f"{stats_text}\n")
+        f.write(f"{line_to_save}\n")
         
     return jsonify({"status": "success", "message": "Statystyki zapisane!"})
 
 # 3. Podsumowanie postępów przez Twój model RAG
 @app.route('/get_summary/<username>', methods=['GET'])
 def get_summary(username):
-    filepath = os.path.join(STATS_DIR, f"{username}_stats.txt")
+    
+    #jezeli raport istnieje to wczytaj go
+    report_path = os.path.join(REPORTS_DIR, f"{username}_report.txt")
+    if os.path.exists(report_path):
+        with open(report_path, "r", encoding="utf-8") as f:
+            summary = f.read()
+        return jsonify({"status": "cached", "summary": summary})
+    
+    filepath = _stats_file_for_user(username)
     if not os.path.exists(filepath):
         return jsonify({"error": "Brak statystyk dla tego użytkownika."}), 404
         
@@ -65,10 +97,62 @@ def get_summary(username):
     try:
         # Odpalamy Twoją funkcję z Answer_model.py (podałeś prompt i user_stats)
         summary = rag_query(prompt, user_stats)
-        print(summary)
+        
+        print(summary) #debug
+        
+        with open(report_path, "w", encoding="utf-8") as f:
+            f.write(summary)
         return jsonify({"status": "success", "summary": summary})
     except Exception as e:
         return jsonify({"error": f"Błąd modelu RAG: {str(e)}"}), 500
+
+
+@app.route('/get_progress/<username>', methods=['GET'])
+def get_progress(username):
+    filepath = _stats_file_for_user(username)
+    if not os.path.exists(filepath):
+        return jsonify({"error": "Brak statystyk dla tego użytkownika."}), 404
+
+    with open(filepath, "r", encoding="utf-8") as f:
+        raw_lines = [line.strip() for line in f.readlines() if line.strip()]
+
+    parsed_entries = []
+
+    for idx, line in enumerate(raw_lines):
+        date_match = re.search(r"\[(\d{4}-\d{2}-\d{2})\]", line)
+        if date_match:
+            try:
+                parsed_date = datetime.strptime(date_match.group(1), "%Y-%m-%d").date()
+            except ValueError:
+                parsed_date = datetime.fromtimestamp(os.path.getmtime(filepath)).date()
+        else:
+            parsed_date = datetime.fromtimestamp(os.path.getmtime(filepath)).date()
+
+        lowered = line.lower()
+        delta = 0
+        if "poprawnie" in lowered:
+            delta = 1
+        elif "błędnie" in lowered or "blednie" in lowered:
+            delta = -1
+
+        parsed_entries.append({
+            "date": parsed_date.isoformat(),
+            "delta": delta,
+            "log": line,
+            "index": idx
+        })
+
+    parsed_entries.sort(key=lambda x: (x["date"], x["index"]))
+    running_score = 0
+    for entry in parsed_entries:
+        running_score += entry["delta"]
+        entry["score"] = running_score
+
+    return jsonify({
+        "status": "success",
+        "username": username,
+        "progress": [{"date": e["date"], "score": e["score"], "delta": e["delta"], "log": e["log"]} for e in parsed_entries]
+    })
 
 # 4. Tworzenie własnych plików z zadaniami
 @app.route('/add_task', methods=['POST'])

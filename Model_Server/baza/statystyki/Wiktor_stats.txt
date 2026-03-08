@@ -1,0 +1,4 @@
+Zadanie 1: Oblicz 2+2 - rozwiązane poprawnie
+Zadanie 2: Rozwiąż równanie x^2=4 - rozwiązane błędnie
+Zadanie 3: Oblicz pole prostokąta 5x3 - rozwiązane poprawnie
+Zadanie 1: Oblicz 2+2 - rozwiązane poprawnie
