@@ -8,17 +8,37 @@ import '../student_service.dart';
 class DashboardPage extends StatelessWidget {
   final StudentService service;
 
-  DashboardPage({required this.service});
+  const DashboardPage({super.key, required this.service});
 
   @override
   Widget build(BuildContext context) {
+    final orientation = MediaQuery.of(context).orientation;
     return Scaffold(
-      appBar: AppBar(title: Text("Panel nauczyciela")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: GridView.count(
-          crossAxisCount: 2,
-          children: [
+      appBar: AppBar(title: const Text("Panel nauczyciela")),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          int crossAxisCount = 2;
+          if (width >= 1200) {
+            crossAxisCount = 4;
+          } else if (width >= 800) {
+            crossAxisCount = 3;
+          } else if (orientation == Orientation.landscape) {
+            crossAxisCount = 3;
+          }
+          final cardRatio = orientation == Orientation.landscape ? 1.6 : 1.1;
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1300),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: GridView.count(
+                  crossAxisCount: crossAxisCount,
+                  childAspectRatio: cardRatio,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  children: [
 
             // Kafelek RAPORTY
             GestureDetector(
@@ -35,9 +55,9 @@ class DashboardPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.analytics, size: 50),
-                    SizedBox(height: 10),
-                    Text("Raporty uczniów")
+                    const Icon(Icons.analytics, size: 50),
+                    const SizedBox(height: 10),
+                    const Text("Raporty uczniów")
                   ],
                 ),
               ),
@@ -58,9 +78,9 @@ class DashboardPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.add_circle, size: 50),
-                    SizedBox(height: 10),
-                    Text("Dodaj zadanie")
+                    const Icon(Icons.add_circle, size: 50),
+                    const SizedBox(height: 10),
+                    const Text("Dodaj zadanie")
                   ],
                 ),
               ),
@@ -81,9 +101,9 @@ class DashboardPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.show_chart, size: 50),
-                    SizedBox(height: 10),
-                    Text("Wykres ucznia")
+                    const Icon(Icons.show_chart, size: 50),
+                    const SizedBox(height: 10),
+                    const Text("Wykres ucznia")
                   ],
                 ),
               ),
@@ -104,16 +124,20 @@ class DashboardPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.calendar_month, size: 50),
-                    SizedBox(height: 10),
-                    Text("Harmonogram")
+                    const Icon(Icons.calendar_month, size: 50),
+                    const SizedBox(height: 10),
+                    const Text("Harmonogram")
                   ],
                 ),
               ),
             ),
 
-          ],
-        ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

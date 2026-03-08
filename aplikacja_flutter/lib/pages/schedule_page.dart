@@ -470,6 +470,40 @@ class _SchedulePageState extends State<SchedulePage> {
     );
   }
 
+  Widget _buildEntriesSection(List<ScheduleEntry> selectedDayEntries) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Zajęcia: ${_uiDate(_selectedDate)}',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (selectedDayEntries.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(child: Text('Brak zajęć w wybranym dniu.')),
+          )
+        else
+          ...selectedDayEntries.map(
+            (entry) => Card(
+              child: ListTile(
+                title: Text(entry.time),
+                subtitle: Text(entry.students),
+                trailing: IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () => _showEditDialog(entry),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedDayEntries = _entriesForSelectedDay();
@@ -483,74 +517,73 @@ class _SchedulePageState extends State<SchedulePage> {
               child: const Icon(Icons.add),
             ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: ListView(
-            children: [
-              if (_loadingTeachers)
-                const LinearProgressIndicator()
-              else
-                DropdownButtonFormField<String>(
-                  value: _selectedTeacher,
-                  decoration: const InputDecoration(
-                    labelText: 'Nauczyciel',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: _teachers
-                      .map(
-                        (teacher) => DropdownMenuItem<String>(
-                          value: teacher,
-                          child: Text(teacher),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 1000;
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1400),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ListView(
+                    children: [
+                      if (_loadingTeachers)
+                        const LinearProgressIndicator()
+                      else
+                        DropdownButtonFormField<String>(
+                          value: _selectedTeacher,
+                          decoration: const InputDecoration(
+                            labelText: 'Nauczyciel',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: _teachers
+                              .map(
+                                (teacher) => DropdownMenuItem<String>(
+                                  value: teacher,
+                                  child: Text(teacher),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value == null) return;
+                            setState(() {
+                              _selectedTeacher = value;
+                            });
+                            _loadSchedule(value);
+                          },
                         ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value == null) return;
-                    setState(() {
-                      _selectedTeacher = value;
-                    });
-                    _loadSchedule(value);
-                  },
-                ),
-              const SizedBox(height: 12),
-              if (_error != null)
-                Text(
-                  _error!,
-                  style: const TextStyle(color: Colors.red),
-                ),
-              if (_loadingEntries) const LinearProgressIndicator(),
-              const SizedBox(height: 8),
-              _buildCalendar(),
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Zajęcia: ${_uiDate(_selectedDate)}',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      const SizedBox(height: 12),
+                      if (_error != null)
+                        Text(
+                          _error!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      if (_loadingEntries) const LinearProgressIndicator(),
+                      const SizedBox(height: 8),
+                      if (isWide)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(flex: 3, child: _buildCalendar()),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 2,
+                              child: _buildEntriesSection(selectedDayEntries),
+                            ),
+                          ],
+                        )
+                      else ...[
+                        _buildCalendar(),
+                        const SizedBox(height: 12),
+                        _buildEntriesSection(selectedDayEntries),
+                      ],
+                      const SizedBox(height: 80),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
-              if (selectedDayEntries.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Center(child: Text('Brak zajęć w wybranym dniu.')),
-                )
-              else
-                ...selectedDayEntries.map(
-                  (entry) => Card(
-                    child: ListTile(
-                      title: Text(entry.time),
-                      subtitle: Text(entry.students),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _showEditDialog(entry),
-                      ),
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 80),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

@@ -163,54 +163,86 @@ class _ChartPageState extends State<ChartPage> {
 
   @override
   Widget build(BuildContext context) {
+    final orientation = MediaQuery.of(context).orientation;
     return Scaffold(
       appBar: AppBar(title: const Text('Wykres postępu ucznia')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (_isLoadingStudents)
-              const LinearProgressIndicator()
-            else
-              DropdownButtonFormField<String>(
-                value: _selectedStudent,
-                decoration: const InputDecoration(
-                  labelText: 'Wybierz ucznia',
-                  border: OutlineInputBorder(),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 900 || orientation == Orientation.landscape;
+          final selector = Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (_isLoadingStudents)
+                const LinearProgressIndicator()
+              else
+                DropdownButtonFormField<String>(
+                  value: _selectedStudent,
+                  decoration: const InputDecoration(
+                    labelText: 'Wybierz ucznia',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: _students
+                      .map(
+                        (student) => DropdownMenuItem<String>(
+                          value: student,
+                          child: Text(student),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() {
+                      _selectedStudent = value;
+                    });
+                    _loadProgress(value);
+                  },
                 ),
-                items: _students
-                    .map(
-                      (student) => DropdownMenuItem<String>(
-                        value: student,
-                        child: Text(student),
+              const SizedBox(height: 12),
+              if (_error != null)
+                Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              if (_isLoadingProgress) const LinearProgressIndicator(),
+            ],
+          );
+
+          final chartArea = Column(
+            children: [
+              Expanded(child: _buildChart()),
+              const SizedBox(height: 8),
+              const Text(
+                'Punktacja: poprawna odpowiedź +1, błędna -1 (wynik skumulowany).',
+                textAlign: TextAlign.center,
+              ),
+            ],
+          );
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1300),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: isWide
+                    ? Row(
+                        children: [
+                          SizedBox(width: 320, child: selector),
+                          const SizedBox(width: 16),
+                          Expanded(child: chartArea),
+                        ],
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          selector,
+                          const SizedBox(height: 12),
+                          Expanded(child: chartArea),
+                        ],
                       ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() {
-                    _selectedStudent = value;
-                  });
-                  _loadProgress(value);
-                },
               ),
-            const SizedBox(height: 16),
-            if (_error != null)
-              Text(
-                _error!,
-                style: const TextStyle(color: Colors.red),
-              ),
-            if (_isLoadingProgress) const LinearProgressIndicator(),
-            const SizedBox(height: 12),
-            Expanded(child: _buildChart()),
-            const SizedBox(height: 8),
-            const Text(
-              'Punktacja: poprawna odpowiedź +1, błędna -1 (wynik skumulowany).',
-              textAlign: TextAlign.center,
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
