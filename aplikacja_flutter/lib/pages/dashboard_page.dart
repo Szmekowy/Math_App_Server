@@ -3,6 +3,7 @@ import 'add_task_page.dart';
 import 'raports_page.dart';
 import 'chart_page.dart';
 import 'schedule_page.dart';
+import 'task_schedule_page.dart';
 import '../student_service.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -127,6 +128,29 @@ class DashboardPage extends StatelessWidget {
                     const Icon(Icons.calendar_month, size: 50),
                     const SizedBox(height: 10),
                     const Text("Harmonogram")
+                  ],
+                ),
+              ),
+            ),
+
+            // Kafelek HARMONOGRAM ZADAŃ
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const TaskSchedulePage(),
+                  ),
+                );
+              },
+              child: Card(
+                elevation: 5,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.task_alt, size: 50),
+                    const SizedBox(height: 10),
+                    const Text("Plan zadań"),
                   ],
                 ),
               ),
