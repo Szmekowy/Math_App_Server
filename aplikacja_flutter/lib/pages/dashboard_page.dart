@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'add_task_page.dart';
 import 'raports_page.dart';
 import 'chart_page.dart';
+import 'schedule_page.dart';
 import '../student_service.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -66,27 +67,50 @@ class DashboardPage extends StatelessWidget {
             ),
 
             // Kafelek WYKRES
-        GestureDetector(
-        onTap: () {
-            Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (_) => ChartPage(service: service), // nowa strona z wykresem
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ChartPage(service: service),
+                  ),
+                );
+              },
+              child: Card(
+                elevation: 5,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.show_chart, size: 50),
+                    SizedBox(height: 10),
+                    Text("Wykres ucznia")
+                  ],
+                ),
+              ),
             ),
-            );
-        },
-        child: Card(
-            elevation: 5,
-            child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-                Icon(Icons.show_chart, size: 50),
-                SizedBox(height: 10),
-                Text("Wykres ucznia")
-            ],
+
+            // Kafelek HARMONOGRAM
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SchedulePage(service: service),
+                  ),
+                );
+              },
+              child: Card(
+                elevation: 5,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.calendar_month, size: 50),
+                    SizedBox(height: 10),
+                    Text("Harmonogram")
+                  ],
+                ),
+              ),
             ),
-        ),
-        ),
 
           ],
         ),

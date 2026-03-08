@@ -11,10 +11,12 @@ app = Flask(__name__)
 TASKS_DIR = "baza/zadania"
 STATS_DIR = "baza/statystyki"
 REPORTS_DIR = "baza/raporty"
+GRAPHICS_DIR = "baza/grafiki"
 # Upewniamy się, że struktura katalogów istnieje
 os.makedirs(REPORTS_DIR,exist_ok=True)
 os.makedirs(TASKS_DIR, exist_ok=True)
 os.makedirs(STATS_DIR, exist_ok=True)
+os.makedirs(GRAPHICS_DIR, exist_ok=True)
 
 @app.route('/get_students', methods=['GET'])
 def get_students():
@@ -36,6 +38,142 @@ def _stats_file_for_user(username):
     if os.path.exists(legacy):
         return legacy
     return primary
+
+
+def _teacher_file(teacher_name):
+    return os.path.join(GRAPHICS_DIR, f"{teacher_name}.txt")
+
+
+def _read_schedule_entries(teacher_name):
+    filepath = _teacher_file(teacher_name)
+    if not os.path.exists(filepath):
+        return None, filepath
+
+    entries = []
+    pattern = re.compile(r"^\[(\d{4}-\d{2}-\d{2})\]\s+\[(\d{1,2}:\d{2})\]\s+(.+)$")
+    with open(filepath, "r", encoding="utf-8") as f:
+        for idx, raw_line in enumerate(f.readlines()):
+            line = raw_line.strip()
+            if not line:
+                continue
+            match = pattern.match(line)
+            if match:
+                date, time, students = match.groups()
+                entries.append({
+                    "index": idx,
+                    "date": date,
+                    "time": time,
+                    "students": students,
+                    "line": line
+                })
+            else:
+                entries.append({
+                    "index": idx,
+                    "date": "",
+                    "time": "",
+                    "students": "",
+                    "line": line
+                })
+    return entries, filepath
+
+
+def _write_schedule_entries(filepath, entries):
+    lines = []
+    for entry in entries:
+        if entry.get("date") and entry.get("time"):
+            lines.append(f"[{entry['date']}] [{entry['time']}] {entry['students']}")
+        else:
+            lines.append(entry.get("line", "").strip())
+    with open(filepath, "w", encoding="utf-8") as f:
+        for line in lines:
+            if line:
+                f.write(f"{line}\n")
+
+
+@app.route('/get_teachers', methods=['GET'])
+def get_teachers():
+    teachers = [
+        filename[:-4]
+        for filename in os.listdir(GRAPHICS_DIR)
+        if filename.endswith('.txt')
+    ]
+    teachers = sorted(set(teachers), key=str.lower)
+    return jsonify({"teachers": teachers})
+
+
+@app.route('/get_schedule/<teacher_name>', methods=['GET'])
+def get_schedule(teacher_name):
+    entries, _ = _read_schedule_entries(teacher_name)
+    if entries is None:
+        return jsonify({"error": "Brak harmonogramu dla nauczyciela."}), 404
+    entries = sorted(entries, key=lambda x: (x["date"], x["time"], x["index"]))
+    return jsonify({"teacher": teacher_name, "schedule": entries})
+
+
+@app.route('/add_schedule_entry', methods=['POST'])
+def add_schedule_entry():
+    data = request.json or {}
+    teacher_name = data.get("teacher_name")
+    date = data.get("date")
+    time = data.get("time")
+    students = data.get("students")
+
+    if not all([teacher_name, date, time, students]):
+        return jsonify({"error": "Brak danych: teacher_name, date, time, students są wymagane."}), 400
+
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", date):
+        return jsonify({"error": "Niepoprawny format daty. Użyj YYYY-MM-DD."}), 400
+    if not re.match(r"^\d{1,2}:\d{2}$", time):
+        return jsonify({"error": "Niepoprawny format godziny. Użyj H:MM lub HH:MM."}), 400
+
+    filepath = _teacher_file(teacher_name)
+    with open(filepath, "a", encoding="utf-8") as f:
+        f.write(f"[{date}] [{time}] {students}\n")
+
+    return jsonify({"status": "success", "message": "Dodano wpis do harmonogramu."})
+
+
+@app.route('/update_schedule_entry', methods=['POST'])
+def update_schedule_entry():
+    data = request.json or {}
+    teacher_name = data.get("teacher_name")
+    entry_index = data.get("entry_index")
+    date = data.get("date")
+    time = data.get("time")
+    students = data.get("students")
+
+    if teacher_name is None or entry_index is None or not all([date, time, students]):
+        return jsonify({"error": "Brak danych: teacher_name, entry_index, date, time, students są wymagane."}), 400
+
+    try:
+        entry_index = int(entry_index)
+    except ValueError:
+        return jsonify({"error": "entry_index musi być liczbą całkowitą."}), 400
+
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", date):
+        return jsonify({"error": "Niepoprawny format daty. Użyj YYYY-MM-DD."}), 400
+    if not re.match(r"^\d{1,2}:\d{2}$", time):
+        return jsonify({"error": "Niepoprawny format godziny. Użyj H:MM lub HH:MM."}), 400
+
+    entries, filepath = _read_schedule_entries(teacher_name)
+    if entries is None:
+        return jsonify({"error": "Brak harmonogramu dla nauczyciela."}), 404
+
+    target = None
+    for i, entry in enumerate(entries):
+        if entry["index"] == entry_index:
+            target = i
+            break
+    if target is None:
+        return jsonify({"error": "Nie znaleziono wpisu o podanym indexie."}), 404
+
+    entries[target]["date"] = date
+    entries[target]["time"] = time
+    entries[target]["students"] = students
+    entries[target]["line"] = f"[{date}] [{time}] {students}"
+    _write_schedule_entries(filepath, entries)
+
+    return jsonify({"status": "success", "message": "Zaktualizowano wpis harmonogramu."})
 
 
 # 1. Pobieranie zbioru zadań przez klienta
