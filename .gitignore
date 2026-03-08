@@ -1,4 +1,4 @@
-/models
-/models/*.gguf
-/venv
-/baza
+/Model_Server/models
+/Model_Server//models/*.gguf
+/Model_Server/venv
+//Model_Server/baza

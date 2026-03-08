@@ -13,3 +13,13 @@ transformers>=4.40.0
 sentence-transformers>=2.2.2
 
 gpt4all
+
+llama-cpp-python
+
+faiss-cpu
+
+langchain-community
+
+flask
+
+requests
