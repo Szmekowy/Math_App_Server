@@ -11,3 +11,9 @@
 [2026-03-10] Zadanie 11: Funkcja liniowa - rozwiązane poprawnie
 [2026-03-11] Zadanie 12: Logarytmy - rozwiązane poprawnie
 [2026-03-12] Zadanie 13: Logarytmy - rozwiązane poprawnie
+[2026-03-13] Zadanie 14: Dodawanie liczb całkowitych - rozwiązane poprawnie
+[2026-03-14] Zadanie 15: Równania liniowe - rozwiązane poprawnie
+[2026-03-15] Zadanie 16: Potęgi i pierwiastki - rozwiązane poprawnie
+[2026-03-16] Zadanie 17: Dodawanie liczb całkowitych - rozwiązane poprawnie
+[2026-03-17] Zadanie 18: Równania liniowe - rozwiązane poprawnie
+[2026-03-18] Zadanie 19: Potęgi i pierwiastki - rozwiązane poprawnie

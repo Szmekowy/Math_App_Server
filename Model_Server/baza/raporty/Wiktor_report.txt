@@ -1,14 +1,7 @@
-Uczeń wykazuje się dobrym zrozumieniem podstawowych działań matematycznych, takich jak dodawanie. Jednakże, w obszarze algebry, szczególnie w rozwiązywaniu równań kwadratowych, uczeń napotyka trudności. Wskazane jest dodatkowe wsparcie w tej dziedzinie, aby uczeń mógł lepiej zrozumieć i opanować te zagadnienia.
-
+Uczeń wykazuje się dobrym zrozumieniem podstawowych operacji matematycznych, takich jak dodawanie liczb całkowitych, potęgowanie i pierwiastkowanie oraz praca z ułamkami zwykłymi. Jednakże, istnieją wyraźne trudności w obszarach takich jak rozwiązywanie równań liniowych, obliczenia procentowe, geometria płaska oraz logarytmy. W tych dziedzinach uczeń popełnia błędy, które wskazują na potrzebę dodatkowego wsparcia i praktyki.
 Progres:
-Uczeń poczynił znaczące postępy w rozwiązywaniu prostych zadań matematycznych, takich jak obliczanie sumy liczb czy pola prostokąta. Te umiejętności są fundamentem dla bardziej zaawansowanych tematów i świadczą o dobrym zrozumieniu podstaw matematyki.
-
+Uczeń systematycznie pracuje nad zadaniami i wykazuje postępy w niektórych obszarach. Widać, że z czasem poprawia swoje umiejętności w zakresie funkcji liniowych, co sugeruje, że zrozumienie tego tematu rośnie. Jednakże, aby osiągnąć pełną biegłość, konieczne jest skupienie się na obszarach, w których występują trudności.
 Mocne Strony:
-- Szybkie i poprawne rozwiązywanie prostych działań arytmetycznych (dodawanie, odejmowanie).
-- Zdolność do obliczania podstawowych miar geometrycznych, takich jak pole prostokąta.
-- Ogólna zdolność do logicznego myślenia i rozwiązywania problemów w prostych sytuacjach matematycznych.
-
-Miejsca do poprawy:
-- Trudności w rozwiązywaniu równań kwadratowych. Uczeń często myli metody rozwiązywania i nie stosuje odpowiednich wzorów.
-- Brak pełnego zrozumienia algebry, co prowadzi do błędów w bardziej złożonych zadaniach.
-- Potrzeba większej praktyki w rozwiązywaniu zadań wymagających zastosowania wiedzy z różnych dziedzin mat
+- **Dodawanie liczb całkowitych**: Uczeń wykonuje te zadania bezbłędnie, co wskazuje na solidne podstawy w tej dziedzinie.
+- **Potęgi i pierwiastki**: Zadania związane z potęgowaniem i pierwiastkowaniem są rozwiązywane poprawnie, co świadczy o dobrym zrozumieniu tych koncepcji.
+- **Ułamki zwykłe**: Praca z ułamkami zwykłymi nie sprawia uczniowi problemów, co jest kluczowe dla wielu bardziej zaawansowanych tematów matematycznych.
