@@ -47,6 +47,30 @@ class ScheduleEntry {
   }
 }
 
+class ReportTimelineItem {
+  final String type; // report | note
+  final DateTime createdAt;
+  final String content;
+  final int? noteId;
+
+  ReportTimelineItem({
+    required this.type,
+    required this.createdAt,
+    required this.content,
+    this.noteId,
+  });
+
+  factory ReportTimelineItem.fromJson(Map<String, dynamic> json) {
+    final rawDate = json['created_at'] as String?;
+    return ReportTimelineItem(
+      type: (json['type'] as String?) ?? 'note',
+      createdAt: DateTime.tryParse(rawDate ?? '') ?? DateTime.now(),
+      content: (json['content'] as String?) ?? '',
+      noteId: json['note_id'] is num ? (json['note_id'] as num).toInt() : null,
+    );
+  }
+}
+
 class StudentService {
   final String baseUrl;
 
@@ -155,6 +179,90 @@ class StudentService {
     );
     if (response.statusCode != 200) {
       throw Exception('Błąd edycji wpisu harmonogramu');
+    }
+  }
+
+  Future<String> getNote(String username) async {
+    final response = await http.get(Uri.parse('$baseUrl/get_note/$username'));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return (data['note'] as String?) ?? '';
+    } else {
+      throw Exception('Błąd pobierania notatki');
+    }
+  }
+
+  Future<void> saveNote({
+    required String username,
+    required String note,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/save_note'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'username': username,
+        'note': note,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Błąd zapisu notatki');
+    }
+  }
+
+  Future<void> updateNote({
+    required String username,
+    required int noteId,
+    required String note,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/update_note'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'username': username,
+        'note_id': noteId,
+        'note': note,
+      }),
+    );
+    if (response.statusCode != 200) {
+      String message = 'Błąd edycji notatki';
+      try {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        if (data['error'] != null) {
+          message = data['error'].toString();
+        }
+      } catch (_) {}
+      throw Exception(message);
+    }
+  }
+
+  Future<List<ReportTimelineItem>> getReportTimeline(String username) async {
+    final response = await http.get(Uri.parse('$baseUrl/get_report_timeline/$username'));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final items = (data['timeline'] as List<dynamic>? ?? []);
+      return items
+          .map((e) => ReportTimelineItem.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } else {
+      throw Exception('Błąd pobierania timeline raportu');
+    }
+  }
+
+  Future<void> generateReport(String username) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/generate_report'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'username': username}),
+    );
+    if (response.statusCode != 200) {
+      String message = 'Błąd generowania raportu';
+      try {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        if (data['error'] != null) {
+          message = data['error'].toString();
+        }
+      } catch (_) {}
+      throw Exception(message);
     }
   }
 }

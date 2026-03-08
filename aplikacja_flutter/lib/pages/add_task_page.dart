@@ -47,7 +47,10 @@ class _AddTaskPageState extends State<AddTaskPage> {
 
             TextField(
               controller: aController,
-              decoration: InputDecoration(labelText: "Odp A"),
+              decoration: InputDecoration(
+                labelText: "Odp A (poprawna)",
+                helperText: "Ta odpowiedź jest oznaczana jako poprawna.",
+              ),
             ),
 
             TextField(

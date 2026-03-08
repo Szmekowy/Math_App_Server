@@ -1,5 +1,6 @@
 import os
 import re
+import json
 from datetime import datetime
 from flask import Flask, request, jsonify
 
@@ -38,6 +39,22 @@ def _stats_file_for_user(username):
     if os.path.exists(legacy):
         return legacy
     return primary
+
+
+def _notes_file_for_user(username):
+    return os.path.join(REPORTS_DIR, f"{username}_notes.txt")
+
+
+def _notes_log_file_for_user(username):
+    return os.path.join(REPORTS_DIR, f"{username}_notes_log.jsonl")
+
+
+def _report_json_file_for_user(username):
+    return os.path.join(REPORTS_DIR, f"{username}_report.json")
+
+
+def _reports_log_file_for_user(username):
+    return os.path.join(REPORTS_DIR, f"{username}_reports_log.jsonl")
 
 
 def _teacher_file(teacher_name):
@@ -88,6 +105,137 @@ def _write_schedule_entries(filepath, entries):
         for line in lines:
             if line:
                 f.write(f"{line}\n")
+
+
+def _load_notes_timeline(username):
+    timeline = []
+    log_path = _notes_log_file_for_user(username)
+    if os.path.exists(log_path):
+        with open(log_path, "r", encoding="utf-8") as f:
+            for idx, line in enumerate(f.readlines()):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    parsed = json.loads(line)
+                    note_text = parsed.get("note", "").strip()
+                    created_at = parsed.get("created_at", "")
+                    if note_text:
+                        timeline.append({
+                            "type": "note",
+                            "note_id": idx,
+                            "created_at": created_at,
+                            "content": note_text
+                        })
+                except json.JSONDecodeError:
+                    continue
+        return timeline
+
+    # Fallback dla starego formatu notatki (jeden plik txt bez historii)
+    legacy_path = _notes_file_for_user(username)
+    if os.path.exists(legacy_path):
+        with open(legacy_path, "r", encoding="utf-8") as f:
+            note_text = f.read().strip()
+        if note_text:
+            created_at = datetime.fromtimestamp(os.path.getmtime(legacy_path)).isoformat(timespec="seconds")
+            timeline.append({
+                "type": "note",
+                "created_at": created_at,
+                "content": note_text
+            })
+    return timeline
+
+
+def _append_report_log(username, created_at, summary):
+    log_path = _reports_log_file_for_user(username)
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write(json.dumps({"created_at": created_at, "summary": summary}, ensure_ascii=False) + "\n")
+
+
+def _load_reports_timeline(username):
+    timeline = []
+    reports_log_path = _reports_log_file_for_user(username)
+    if os.path.exists(reports_log_path):
+        with open(reports_log_path, "r", encoding="utf-8") as f:
+            for line in f.readlines():
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    parsed = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                summary = str(parsed.get("summary", "")).strip()
+                created_at = str(parsed.get("created_at", "")).strip()
+                if summary and created_at:
+                    timeline.append({
+                        "type": "report",
+                        "created_at": created_at,
+                        "content": summary
+                    })
+        return timeline
+
+    # Fallback: pojedynczy raport (stary format), migrowany do logu.
+    report_json_path = _report_json_file_for_user(username)
+    report_txt_path = os.path.join(REPORTS_DIR, f"{username}_report.txt")
+    summary = ""
+    created_at = ""
+    if os.path.exists(report_json_path):
+        with open(report_json_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        summary = str(data.get("summary", "")).strip()
+        created_at = str(data.get("created_at", "")).strip()
+    elif os.path.exists(report_txt_path):
+        with open(report_txt_path, "r", encoding="utf-8") as f:
+            summary = f.read().strip()
+        created_at = datetime.fromtimestamp(os.path.getmtime(report_txt_path)).isoformat(timespec="seconds")
+
+    if summary:
+        if not created_at:
+            created_at = datetime.now().isoformat(timespec="seconds")
+        _append_report_log(username, created_at, summary)
+        timeline.append({
+            "type": "report",
+            "created_at": created_at,
+            "content": summary
+        })
+    return timeline
+
+
+def _generate_report(username):
+    filepath = _stats_file_for_user(username)
+    if not os.path.exists(filepath):
+        return None
+
+    with open(filepath, "r", encoding="utf-8") as f:
+        user_stats = f.read()
+
+    prompt = """Napisz raport na temat progresu ucznia. Wypisz jakie rodzaje zadań wykonuje poprawnie a jakie błędnie. Nie zmyślaj faktów. Napisz sekcje Podsumowanie, Progres s, Mocne Strony, Miejsca do poprawy, Sugerowane zadania na przyszłość. Rozpisz się w każdej z sekcji"""
+    summary = rag_query(prompt, user_stats)
+    created_at = datetime.now().isoformat(timespec="seconds")
+
+    # latest snapshot for compatibility
+    report_path = os.path.join(REPORTS_DIR, f"{username}_report.txt")
+    report_json_path = _report_json_file_for_user(username)
+    with open(report_path, "w", encoding="utf-8") as f:
+        f.write(summary)
+    with open(report_json_path, "w", encoding="utf-8") as f:
+        json.dump({"summary": summary, "created_at": created_at}, f, ensure_ascii=False, indent=2)
+
+    _append_report_log(username, created_at, summary)
+    return {"status": "success", "summary": summary, "created_at": created_at}
+
+
+def _load_or_create_report(username):
+    reports = _load_reports_timeline(username)
+    if reports:
+        latest = reports[-1]
+        return {
+            "status": "cached",
+            "summary": latest.get("content", ""),
+            "created_at": latest.get("created_at", "")
+        }
+    return None
 
 
 @app.route('/get_teachers', methods=['GET'])
@@ -214,35 +362,137 @@ def save_stats():
 # 3. Podsumowanie postępów przez Twój model RAG
 @app.route('/get_summary/<username>', methods=['GET'])
 def get_summary(username):
-    
-    #jezeli raport istnieje to wczytaj go
-    report_path = os.path.join(REPORTS_DIR, f"{username}_report.txt")
-    if os.path.exists(report_path):
-        with open(report_path, "r", encoding="utf-8") as f:
-            summary = f.read()
-        return jsonify({"status": "cached", "summary": summary})
-    
-    filepath = _stats_file_for_user(username)
-    if not os.path.exists(filepath):
-        return jsonify({"error": "Brak statystyk dla tego użytkownika."}), 404
-        
-    with open(filepath, "r", encoding="utf-8") as f:
-        user_stats = f.read()
-        
-    # Składamy jeden mocny prompt dla Twojej funkcji rag_query
-    prompt = """Napisz raport na temat progresu ucznia. Wypisz jakie rodzaje zadań wykonuje poprawnie a jakie błędnie. Nie zmyślaj faktów. Napisz sekcje Podsumowanie, Progres s, Mocne Strony, Miejsca do poprawy, Sugerowane zadania na przyszłość. Rozpisz się w każdej z sekcji"""
-    
+    report_data = _load_or_create_report(username)
+    if report_data is None:
+        return jsonify({"error": "Brak wygenerowanego raportu dla tego użytkownika."}), 404
     try:
-        # Odpalamy Twoją funkcję z Answer_model.py (podałeś prompt i user_stats)
-        summary = rag_query(prompt, user_stats)
-        
-        print(summary) #debug
-        
-        with open(report_path, "w", encoding="utf-8") as f:
-            f.write(summary)
-        return jsonify({"status": "success", "summary": summary})
+        return jsonify(report_data)
     except Exception as e:
         return jsonify({"error": f"Błąd modelu RAG: {str(e)}"}), 500
+
+
+@app.route('/get_note/<username>', methods=['GET'])
+def get_note(username):
+    notes = _load_notes_timeline(username)
+    if not notes:
+        return jsonify({"status": "success", "note": ""})
+    latest = notes[-1]
+    return jsonify({"status": "success", "note": latest["content"], "created_at": latest["created_at"]})
+
+
+@app.route('/save_note', methods=['POST'])
+def save_note():
+    data = request.json or {}
+    username = data.get("username")
+    note = data.get("note", "")
+
+    if not username:
+        return jsonify({"error": "Brakuje username."}), 400
+
+    note = str(note).strip()
+    if not note:
+        return jsonify({"error": "Notatka nie może być pusta."}), 400
+
+    created_at = datetime.now().isoformat(timespec="seconds")
+    log_path = _notes_log_file_for_user(username)
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write(json.dumps({"created_at": created_at, "note": note}, ensure_ascii=False) + "\n")
+
+    # Kompatybilność wsteczna: ostatnia notatka nadal pod legacy endpoint/file
+    note_path = _notes_file_for_user(username)
+    with open(note_path, "w", encoding="utf-8") as f:
+        f.write(note)
+
+    return jsonify({"status": "success", "message": "Notatka zapisana."})
+
+
+@app.route('/update_note', methods=['POST'])
+def update_note():
+    data = request.json or {}
+    username = data.get("username")
+    note_id = data.get("note_id")
+    note = data.get("note", "")
+
+    if not username:
+        return jsonify({"error": "Brakuje username."}), 400
+    if note_id is None:
+        return jsonify({"error": "Brakuje note_id."}), 400
+
+    note = str(note).strip()
+    if not note:
+        return jsonify({"error": "Notatka nie może być pusta."}), 400
+
+    try:
+        note_id = int(note_id)
+    except ValueError:
+        return jsonify({"error": "note_id musi być liczbą całkowitą."}), 400
+
+    log_path = _notes_log_file_for_user(username)
+    if not os.path.exists(log_path):
+        return jsonify({"error": "Brak historii notatek dla tego użytkownika."}), 404
+
+    with open(log_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    if note_id < 0 or note_id >= len(lines):
+        return jsonify({"error": "Niepoprawny note_id."}), 404
+
+    raw_line = lines[note_id].strip()
+    if not raw_line:
+        return jsonify({"error": "Wybrana notatka jest pusta i nie może być edytowana."}), 400
+
+    try:
+        parsed = json.loads(raw_line)
+    except json.JSONDecodeError:
+        return jsonify({"error": "Wybrany wpis notatki ma niepoprawny format."}), 400
+
+    original_created_at = parsed.get("created_at") or datetime.now().isoformat(timespec="seconds")
+    parsed["note"] = note
+    parsed["created_at"] = original_created_at
+    parsed["updated_at"] = datetime.now().isoformat(timespec="seconds")
+    lines[note_id] = json.dumps(parsed, ensure_ascii=False) + "\n"
+
+    with open(log_path, "w", encoding="utf-8") as f:
+        f.writelines(lines)
+
+    # Aktualizujemy też legacy plik z ostatnią notatką.
+    note_path = _notes_file_for_user(username)
+    with open(note_path, "w", encoding="utf-8") as f:
+        f.write(note)
+
+    return jsonify({"status": "success", "message": "Notatka zaktualizowana."})
+
+
+@app.route('/generate_report', methods=['POST'])
+def generate_report():
+    data = request.json or {}
+    username = data.get("username")
+    if not username:
+        return jsonify({"error": "Brakuje username."}), 400
+
+    try:
+        report_data = _generate_report(username)
+        if report_data is None:
+            return jsonify({"error": "Brak statystyk dla tego użytkownika."}), 404
+        return jsonify(report_data)
+    except Exception as e:
+        return jsonify({"error": f"Błąd generowania raportu: {str(e)}"}), 500
+
+
+@app.route('/get_report_timeline/<username>', methods=['GET'])
+def get_report_timeline(username):
+    reports = _load_reports_timeline(username)
+    notes = _load_notes_timeline(username)
+
+    timeline = list(reports)
+    timeline.extend(notes)
+
+    timeline.sort(key=lambda x: x.get("created_at", ""))
+    return jsonify({
+        "status": "success",
+        "username": username,
+        "timeline": timeline
+    })
 
 
 @app.route('/get_progress/<username>', methods=['GET'])

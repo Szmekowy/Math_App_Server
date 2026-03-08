@@ -1,4 +1,13 @@
-Zadanie 1: Oblicz 2+2 - rozwiązane poprawnie
-Zadanie 2: Rozwiąż równanie x^2=4 - rozwiązane błędnie
-Zadanie 3: Oblicz pole prostokąta 5x3 - rozwiązane poprawnie
-Zadanie 1: Oblicz 2+2 - rozwiązane poprawnie
+[2026-03-01] Zadanie 1: Dodawanie liczb całkowitych - rozwiązane poprawnie
+[2026-03-01] Zadanie 2: Równania liniowe - rozwiązane błędnie
+[2026-03-02] Zadanie 3: Potęgi i pierwiastki - rozwiązane poprawnie
+[2026-03-03] Zadanie 4: Ułamki zwykłe - rozwiązane poprawnie
+[2026-03-04] Zadanie 5: Procenty - rozwiązane błędnie
+[2026-03-05] Zadanie 6: Geometria płaska - rozwiązane błędnie
+[2026-03-06] Zadanie 7: Funkcja liniowa - rozwiązane poprawnie
+[2026-03-07] Zadanie 8: Geometria płaska - rozwiązane błędnie
+[2026-03-08] Zadanie 9: Funkcja liniowa - rozwiązane poprawnie
+[2026-03-09] Zadanie 10: Geometria płaska - rozwiązane poprawnie
+[2026-03-10] Zadanie 11: Funkcja liniowa - rozwiązane poprawnie
+[2026-03-11] Zadanie 12: Logarytmy - rozwiązane błędnie
+[2026-03-12] Zadanie 13: Logarytmy - rozwiązane błędnie
