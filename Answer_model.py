@@ -11,7 +11,7 @@ embedder = SentenceTransformerEmbeddings(model_name="paraphrase-multilingual-Min
 
 docs =[]
 
-with open("context.txt", "r") as f:
+with open("Dane/context.txt", "r") as f:
     for line in f:
         docs.append(line)
 
