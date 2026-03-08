@@ -1,6 +1,29 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+class ProgressPoint {
+  final DateTime date;
+  final int score;
+  final int delta;
+  final String log;
+
+  ProgressPoint({
+    required this.date,
+    required this.score,
+    required this.delta,
+    required this.log,
+  });
+
+  factory ProgressPoint.fromJson(Map<String, dynamic> json) {
+    return ProgressPoint(
+      date: DateTime.parse(json['date'] as String),
+      score: (json['score'] as num).toInt(),
+      delta: (json['delta'] as num).toInt(),
+      log: (json['log'] as String?) ?? '',
+    );
+  }
+}
+
 class StudentService {
   final String baseUrl;
 
@@ -24,6 +47,19 @@ class StudentService {
       return jsonDecode(response.body)['summary'];
     } else {
       throw Exception('Błąd pobierania raportu');
+    }
+  }
+
+  Future<List<ProgressPoint>> getProgress(String username) async {
+    final response = await http.get(Uri.parse('$baseUrl/get_progress/$username'));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final items = (data['progress'] as List<dynamic>? ?? []);
+      return items
+          .map((e) => ProgressPoint.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } else {
+      throw Exception('Błąd pobierania postępu');
     }
   }
 }
