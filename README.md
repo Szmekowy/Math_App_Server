@@ -117,6 +117,5 @@ http://0.0.0.0:5000
 
 ## Project Notes
 
-1. The `shorts` and `student task planner` modules are currently **frontend-only** (no backend persistence).
-2. Reports and notes keep history (timeline) in `*.jsonl` files.
-3. The API includes CORS headers for Flutter Web compatibility.
+1. Reports and notes keep history (timeline) in `*.jsonl` files.
+2. The API includes CORS headers for Flutter Web compatibility.
