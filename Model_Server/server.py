@@ -13,6 +13,12 @@ STATS_DIR = "baza/statystyki"
 os.makedirs(TASKS_DIR, exist_ok=True)
 os.makedirs(STATS_DIR, exist_ok=True)
 
+@app.route('/get_students', methods=['GET'])
+def get_students():
+    students = [f.split('_stats.txt')[0] for f in os.listdir(STATS_DIR) if f.endswith('_stats.txt')]
+    return jsonify({"students": students})
+
+
 # 1. Pobieranie zbioru zadań przez klienta
 @app.route('/get_tasks/<filename>', methods=['GET'])
 def get_tasks(filename):
@@ -160,4 +166,4 @@ Uczeń nie rozumie i pyta: '{user_question}'. Odpowiedz tylko na to pytanie na p
         return jsonify({"error": f"Błąd modelu RAG: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True,host="0.0.0.0", port=5000)

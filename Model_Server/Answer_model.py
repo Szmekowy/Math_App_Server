@@ -22,6 +22,7 @@ vector_store = FAISS.from_texts(docs, embedder)
 
 def rag_query(prompt,query):
 
+    print("Debug")
     results = vector_store.similarity_search(query, k=2)
     context = " ".join([doc.page_content for doc in results])
     
