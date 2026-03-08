@@ -19,6 +19,20 @@ os.makedirs(TASKS_DIR, exist_ok=True)
 os.makedirs(STATS_DIR, exist_ok=True)
 os.makedirs(GRAPHICS_DIR, exist_ok=True)
 
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    return response
+
+
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        return ("", 204)
+
 @app.route('/get_students', methods=['GET'])
 def get_students():
     students = []
