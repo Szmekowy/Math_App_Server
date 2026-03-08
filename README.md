@@ -15,6 +15,8 @@ The project consists of two main parts:
 
 ## 1. Application Layer (Flutter)
 
+Frontend Location: 'https://github.com/PiotrZPL/math_frontend'
+
 Lokalizacja: `aplikacja_flutter/`
 Location: `aplikacja_flutter/`
 
