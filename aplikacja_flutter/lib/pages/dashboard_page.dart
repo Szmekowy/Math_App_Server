@@ -4,6 +4,8 @@ import 'raports_page.dart';
 import 'chart_page.dart';
 import 'schedule_page.dart';
 import 'task_schedule_page.dart';
+import 'shorts_teacher_page.dart';
+import 'shorts_student_page.dart';
 import '../student_service.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -151,6 +153,52 @@ class DashboardPage extends StatelessWidget {
                     const Icon(Icons.task_alt, size: 50),
                     const SizedBox(height: 10),
                     const Text("Plan zadań"),
+                  ],
+                ),
+              ),
+            ),
+
+            // Kafelek SHORTS - PANEL NAUCZYCIELA
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ShortsTeacherPage(),
+                  ),
+                );
+              },
+              child: Card(
+                elevation: 5,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.video_library_outlined, size: 50),
+                    const SizedBox(height: 10),
+                    const Text("Shorts (nauczyciel)"),
+                  ],
+                ),
+              ),
+            ),
+
+            // Kafelek SHORTS - PODGLĄD UCZNIA
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ShortsStudentPage(),
+                  ),
+                );
+              },
+              child: Card(
+                elevation: 5,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.ondemand_video_outlined, size: 50),
+                    const SizedBox(height: 10),
+                    const Text("Shorts (uczeń)"),
                   ],
                 ),
               ),
