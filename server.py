@@ -54,9 +54,7 @@ def get_summary(username):
         user_stats = f.read()
         
     # Składamy jeden mocny prompt dla Twojej funkcji rag_query
-    prompt = """Jesteś wyrozumiałym nauczycielem matematyki. Pisz języku polskim.
-Nie wymyślaj faktów,
-Napisz krótkie, motywujące podsumowanie postępów ucznia. Wskaż mocne strony i to, nad czym musi popracować oraz jak to osiągnąć."""
+    prompt = """Napisz raport na temat progresu ucznia. Wypisz jakie rodzaje zadań wykonuje poprawnie a jakie błędnie. Nie zmyślaj faktów. Napisz sekcje Podsumowanie, Progres s, Mocne Strony, Miejsca do poprawy, Sugerowane zadania na przyszłość. Rozpisz się w każdej z sekcji"""
     
     try:
         # Odpalamy Twoją funkcję z Answer_model.py (podałeś prompt i user_stats)
